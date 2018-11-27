@@ -1,0 +1,31 @@
+{
+  "name": "webrtc-node",
+  "version": "2.2.0",
+  "description": "WebRTC for NodeJS",
+  "private": true,
+  "gypfile": true,
+  "main": "index.js",
+  "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
+    "build": "node-pre-gyp build",
+    "build:debug": "node-pre-gyp build --debug",
+    "rebuild": "node-pre-gyp rebuild",
+    "rebuild:debug": "node-pre-gyp rebuild --debug",
+    "test": "mocha test",
+    "package": "node-pre-gyp package"
+  },
+  "dependencies": {
+    "nan": "^2.11.1",
+    "node-pre-gyp": "^0.12"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "pngjs": "^3.3.3"
+  },
+  "binary": {
+    "module_name": "webrtc",
+    "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
+    "host": "https://bitbucket.org",
+    "remote_path": "/jumpchat/webrtc-node/downloads/"
+  }
+}
