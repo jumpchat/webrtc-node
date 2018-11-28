@@ -21,19 +21,6 @@ cricket::CaptureState ScreencastCapturer::Start(const cricket::VideoFormat& capt
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
-    webrtc::DesktopCaptureOptions options = webrtc::DesktopCaptureOptions::CreateDefault();
-#ifdef WIN32
-    options.set_allow_directx_capturer(true);
-#endif
-    _capturer = webrtc::DesktopCapturer::CreateScreenCapturer(options);
-    _capturer->SelectSource(_desktopId);
-
-    if (_captureCursor) {
-        _capturer = std::unique_ptr<webrtc::DesktopAndCursorComposer>(new webrtc::DesktopAndCursorComposer(std::move(_capturer), options));
-    }
-
-    Emit(kScreencastCapturerStart);
-
 	rtc::Thread::Start();
 
     SetCaptureState(cricket::CS_RUNNING);
@@ -44,7 +31,6 @@ void ScreencastCapturer::Stop()
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
     SetCaptureState(cricket::CS_STOPPED);
-    _capturer = NULL;
 	rtc::Thread::Stop();
 }
 
@@ -123,32 +109,24 @@ void ScreencastCapturer::OnCaptureResult(webrtc::DesktopCapturer::Result result,
     }
 }
 
-void ScreencastCapturer::On(Event* event) {
-
-    RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
-
-    Nan::HandleScope scope;
-    ScreencastCapturerEvent type = event->Type<ScreencastCapturerEvent>();
-
-    switch (type) {
-        case kScreencastCapturerCaptureFrame: {
-            _capturer->CaptureFrame();
-        }
-        break;
-
-        case kScreencastCapturerStart: {
-            _capturer->Start(this);
-        }
-        break;
-    }
-}
-
-
 void ScreencastCapturer::Run()
 {
+    webrtc::DesktopCaptureOptions options = webrtc::DesktopCaptureOptions::CreateDefault();
+#ifdef WIN32
+    options.set_allow_directx_capturer(true);
+#endif
+    _capturer = webrtc::DesktopCapturer::CreateScreenCapturer(options);
+    _capturer->SelectSource(_desktopId);
+
+    if (_captureCursor) {
+        _capturer = std::unique_ptr<webrtc::DesktopAndCursorComposer>(new webrtc::DesktopAndCursorComposer(std::move(_capturer), options));
+    }
+
+    _capturer->Start(this);
+
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 	while (IsRunning()) {
-        Emit(kScreencastCapturerCaptureFrame);
+        _capturer->CaptureFrame();
         int64_t timestamp_us = rtc::TimeMicros();
         int64_t diff_us = rtc::TimeMicros() - timestamp_us;
 
@@ -159,6 +137,8 @@ void ScreencastCapturer::Run()
         // RTC_LOG(LS_INFO) << "Capture Frame " << sleepMs << "ms";
         rtc::Thread::SleepMs(sleepMs);
     }
+
+    _capturer = NULL;
 }
 
 void ScreencastCapturer::SetDesktopId(int desktopId)

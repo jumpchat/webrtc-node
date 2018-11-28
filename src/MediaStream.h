@@ -6,12 +6,12 @@
 // #include "Observers.h"
 
 namespace WebRTC {
-enum MediaStreamEvent {
-    kMediaStreamChanged
-};
-
-class MediaStream : public Nan::ObjectWrap, public EventEmitter {
+class MediaStream : public Nan::ObjectWrap, public EventEmitter, public webrtc::ObserverInterface {
 public:
+    enum MediaStreamEvent {
+        kMediaStreamChanged
+    };
+
     static NAN_MODULE_INIT(Init);
     static v8::Local<v8::Value> New(rtc::scoped_refptr<webrtc::MediaStreamInterface> mediaStream);
 
@@ -44,6 +44,9 @@ private:
     void CheckState();
     void On(Event* event) final;
 
+    // webrtc::ObserverInterface
+    virtual void OnChanged();
+
 protected:
     bool _active;
     bool _ended;
@@ -51,7 +54,6 @@ protected:
     Nan::Persistent<v8::Function> _onaddtrack;
     Nan::Persistent<v8::Function> _onremovetrack;
 
-    // rtc::scoped_refptr<MediaStreamObserver> _observer;
     rtc::scoped_refptr<webrtc::MediaStreamInterface> _stream;
 
     webrtc::AudioTrackVector _audio_tracks;

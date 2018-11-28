@@ -40,3 +40,4 @@ frame.png
 lib
 *.tar.gz
 /*.png
+/include

@@ -303,7 +303,10 @@ NAN_GETTER(MediaStreamTrack::GetKind)
 NAN_GETTER(MediaStreamTrack::GetLabel)
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
-    info.GetReturnValue().Set(Nan::New("").ToLocalChecked());
+
+    // We return the kind for the label so there is something to see
+    MediaStreamTrack* self = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(info.Holder());
+    info.GetReturnValue().Set(Nan::New(self->_track->kind().c_str()).ToLocalChecked());
 }
 
 NAN_GETTER(MediaStreamTrack::GetMuted)

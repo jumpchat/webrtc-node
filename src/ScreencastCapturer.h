@@ -6,7 +6,7 @@
 
 namespace WebRTC {
 
-class ScreencastCapturer : public cricket::VideoCapturer, public EventEmitter,
+class ScreencastCapturer : public cricket::VideoCapturer,
                             public webrtc::DesktopCapturer::Callback, public rtc::Thread {
     public:
         enum ScreencastCapturerEvent {
@@ -25,8 +25,6 @@ class ScreencastCapturer : public cricket::VideoCapturer, public EventEmitter,
 
         // webrtc::DesktopCapturer::Callback
         virtual void OnCaptureResult(webrtc::DesktopCapturer::Result result, std::unique_ptr<webrtc::DesktopFrame> frame);
-
-        void On(Event* event);
 
         // rtc::Thread
         virtual void Run();

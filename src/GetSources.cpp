@@ -23,7 +23,7 @@ rtc::scoped_refptr<webrtc::AudioTrackInterface> GetSources::GetAudioSource(const
     if (factory.get()) {
         cricket::AudioOptions options;
         CopyConstraintsIntoAudioOptions(constraints->ToConstraints(), &options);
-        track = factory->CreateAudioTrack("audio", factory->CreateAudioSource(options));
+        track = factory->CreateAudioTrack(rtc::CreateRandomUuid(), factory->CreateAudioSource(options));
     }
 
     return track;
@@ -58,7 +58,7 @@ rtc::scoped_refptr<webrtc::VideoTrackInterface> GetSources::GetVideoSource(const
                     capturer = device_factory.Create(cricket::Device(name, 0));
 
                     if (capturer) {
-                        track = factory->CreateVideoTrack("video", factory->CreateVideoSource(std::move(capturer), constraints->ToConstraints()));
+                        track = factory->CreateVideoTrack(rtc::CreateRandomUuid(), factory->CreateVideoSource(std::move(capturer), constraints->ToConstraints()));
                         return track;
                     }
                 }
@@ -86,7 +86,7 @@ rtc::scoped_refptr<webrtc::VideoTrackInterface> GetSources::GetVideoSource(const
             screencast_capturer->SetDesktopId(constraints->ScreenCastDesktopId());
             screencast_capturer->SetCaptureCursor(constraints->ScreenCastCaptureCursor());
             screencast_capturer->SetFPS(constraints->ScreenCastFPS());
-            track = factory->CreateVideoTrack("video", factory->CreateVideoSource(std::move(screencast_capturer), constraints->ToConstraints()));
+            track = factory->CreateVideoTrack(rtc::CreateRandomUuid(), factory->CreateVideoSource(std::move(screencast_capturer), constraints->ToConstraints()));
             return track;
         } else {
             std::unique_ptr<webrtc::VideoCaptureModule::DeviceInfo> video_info(webrtc::VideoCaptureFactory::CreateDeviceInfo());
@@ -103,7 +103,7 @@ rtc::scoped_refptr<webrtc::VideoTrackInterface> GetSources::GetVideoSource(const
                             capturer = device_factory.Create(cricket::Device(name, 0));
 
                             if (capturer) {
-                                track = factory->CreateVideoTrack("video", factory->CreateVideoSource(std::move(capturer), constraints->ToConstraints()));
+                                track = factory->CreateVideoTrack(rtc::CreateRandomUuid(), factory->CreateVideoSource(std::move(capturer), constraints->ToConstraints()));
                                 return track;
                             }
                         }

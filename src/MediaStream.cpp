@@ -54,7 +54,7 @@ Local<Value> MediaStream::New(rtc::scoped_refptr<webrtc::MediaStreamInterface> m
         self->_stream = mediaStream;
         self->_audio_tracks = self->_stream->GetAudioTracks();
         self->_video_tracks = self->_stream->GetVideoTracks();
-        // self->_stream->RegisterObserver(self->_observer.get());
+        self->_stream->RegisterObserver(self);
         self->CheckState();
 
         return scope.Escape(ret);
@@ -68,8 +68,6 @@ MediaStream::MediaStream()
     , _ended(true)
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
-
-    // _observer = new rtc::RefCountedObject<MediaStreamObserver>(this);
 }
 
 MediaStream::~MediaStream()
@@ -77,10 +75,8 @@ MediaStream::~MediaStream()
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
     if (_stream.get()) {
-        // _stream->UnregisterObserver(_observer.get());
+        _stream->UnregisterObserver(this);
     }
-
-    // _observer->RemoveListener(this);
 }
 
 NAN_METHOD(MediaStream::New)
@@ -97,7 +93,7 @@ NAN_METHOD(MediaStream::New)
         mediaStream->_stream = webrtc::MediaStream::Create(rtc::CreateRandomUuid());
         mediaStream->_audio_tracks = mediaStream->_stream->GetAudioTracks();
         mediaStream->_video_tracks = mediaStream->_stream->GetVideoTracks();
-        // mediaStream->_stream->RegisterObserver(mediaStream->_observer.get());
+        mediaStream->_stream->RegisterObserver(mediaStream);
         mediaStream->CheckState();
 
         return info.GetReturnValue().Set(info.This());
@@ -203,7 +199,7 @@ NAN_METHOD(MediaStream::Clone)
     rtc::scoped_refptr<webrtc::MediaStreamInterface> stream;
 
     if (self.get() && factory.get()) {
-        stream = factory->CreateLocalMediaStream("stream");
+        stream = factory->CreateLocalMediaStream(rtc::CreateRandomUuid());
 
         if (stream.get()) {
             webrtc::AudioTrackVector audio_list = self->GetAudioTracks();
@@ -553,4 +549,8 @@ void MediaStream::On(Event* event)
     }
 
     MediaStream::CheckState();
+}
+
+void MediaStream::OnChanged() {
+    Emit(kMediaStreamChanged);
 }
