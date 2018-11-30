@@ -1,17 +1,17 @@
 #include "Common.h"
 
-// #include "BackTrace.h"
-// #include "DataChannel.h"
+#include "DesktopCapturer.h"
 #include "GetSources.h"
 #include "MediaDevices.h"
 #include "MediaStream.h"
 #include "MediaStreamTrack.h"
 #include "MediaVideoRenderer.h"
 #include "MediaAudioRenderer.h"
-// #include "PeerConnection.h"
 #include "Platform.h"
-// #include "Stats.h"
-#include "DesktopCapturer.h"
+#include "RTCPeerConnection.h"
+#include "RTCDataChannel.h"
+#include "RTCStatsReport.h"
+#include "RTCStatsResponse.h"
 
 using namespace v8;
 
@@ -106,17 +106,18 @@ void WebrtcModuleInit(Handle<Object> exports)
     Nan::HandleScope scope;
 
     WebRTC::Platform::Init();
-    // WebRTC::RTCStatsResponse::Init();
-    // WebRTC::RTCStatsReport::Init();
-    // WebRTC::PeerConnection::Init(exports);
-    // WebRTC::DataChannel::Init();
+
+    WebRTC::DesktopCapturer::Init(exports);
     WebRTC::GetSources::Init(exports);
     WebRTC::MediaDevices::Init(exports);
     WebRTC::MediaStream::Init(exports);
     WebRTC::MediaStreamTrack::Init(exports);
     WebRTC::MediaAudioRenderer::Init(exports);
     WebRTC::MediaVideoRenderer::Init(exports);
-    WebRTC::DesktopCapturer::Init(exports);
+    WebRTC::RTCStatsResponse::Init(exports);
+    WebRTC::RTCStatsReport::Init(exports);
+    WebRTC::RTCPeerConnection::Init(exports);
+    WebRTC::RTCDataChannel::Init(exports);
 
     exports->Set(Nan::New("RTCGarbageCollect").ToLocalChecked(), Nan::New<FunctionTemplate>(RTCGarbageCollect)->GetFunction());
     exports->Set(Nan::New("RTCIceCandidate").ToLocalChecked(), Nan::New<FunctionTemplate>(RTCIceCandidate)->GetFunction());

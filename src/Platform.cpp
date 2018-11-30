@@ -18,13 +18,16 @@ void Platform::Init()
     rtc::InitializeSSL();
 
     network_thread = rtc::Thread::CreateWithSocketServer();
-    network_thread->Start();
+    network_thread->SetName("network_thread", nullptr);
+    RTC_CHECK(network_thread->Start()) << "Failed to start thread";
 
     worker_thread = rtc::Thread::Create();
-    worker_thread->Start();
+    worker_thread->SetName("worker_thread", nullptr);
+    RTC_CHECK(worker_thread->Start()) << "Failed to start thread";
 
     signal_thread = rtc::Thread::Create();
-    signal_thread->Start();
+    signal_thread->SetName("signaling_thread", nullptr);
+    RTC_CHECK(signal_thread->Start()) << "Failed to start thread";
 
     factory = webrtc::CreatePeerConnectionFactory(
         network_thread.get(),
