@@ -3,7 +3,7 @@ const rtc = require('..');
 const PNG = require('pngjs').PNG;
 const fs = require('fs');
 
-// rtc.setDebug(false);
+// rtc.setDebug(true);
 
 function saveFrameYUV(frame, filename, cb) {
 

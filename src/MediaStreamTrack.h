@@ -5,16 +5,15 @@
 #include "EventEmitter.h"
 
 namespace WebRTC {
-enum MediaStreamTrackEvent {
-    kMediaStreamTrackChanged
-};
-
-class MediaStreamTrack : public Nan::ObjectWrap, public EventEmitter {
+class MediaStreamTrack : public Nan::ObjectWrap, public EventEmitter, webrtc::ObserverInterface {
 public:
+    enum MediaStreamTrackEvent {
+        kMediaStreamTrackChanged
+    };
+
     static NAN_MODULE_INIT(Init);
 
-    static v8::Local<v8::Value> New(rtc::scoped_refptr<webrtc::AudioTrackInterface> audioTrack);
-    static v8::Local<v8::Value> New(rtc::scoped_refptr<webrtc::VideoTrackInterface> videoTrack);
+    static v8::Local<v8::Value> New(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track);
 
     static rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> Unwrap(v8::Local<v8::Object> value);
     static rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> Unwrap(v8::Local<v8::Value> value);
@@ -57,6 +56,9 @@ private:
 
     void CheckState();
     void On(Event* event) final;
+
+    // webrtc::ObserverInterface
+    void OnChanged() final;
 
 protected:
     bool isAudioTrack;

@@ -1,9 +1,12 @@
 #include "RTCPeerConnection.h"
 #include "RTCDataChannel.h"
 #include "MediaStream.h"
+#include "MediaStreamTrack.h"
 #include "Platform.h"
 #include "RTCStatsReport.h"
 #include "RTCStatsResponse.h"
+#include "RTCRtpTransceiver.h"
+#include "RTCRtpReceiver.h"
 
 using namespace v8;
 using namespace WebRTC;
@@ -47,6 +50,7 @@ NAN_MODULE_INIT(RTCPeerConnection::Init)
     Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ondatachannel").ToLocalChecked(), GetOnDataChannel, SetOnDataChannel);
     Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("onnegotiationneeded").ToLocalChecked(), GetOnNegotiationNeeded, SetOnNegotiationNeeded);
     Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("onaddstream").ToLocalChecked(), GetOnAddStream, SetOnAddStream);
+    Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("ontrack").ToLocalChecked(), GetOnTrack, SetOnTrack);
     Nan::SetAccessor(tpl->InstanceTemplate(), Nan::New("onremovestream").ToLocalChecked(), GetOnRemoveStream, SetOnRemoveStream);
 
     constructor.Reset<Function>(tpl->GetFunction());
@@ -120,6 +124,20 @@ RTCPeerConnection::RTCPeerConnection(const Local<Object>& configuration) :
                 }
             }
         }
+
+        // explicitly use unified plan for now to allow OnTrack to be called
+        // _config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+
+        Local<Value> sdpsemantics_value = configuration->Get(Nan::New("sdpSemantics").ToLocalChecked());
+        if (!sdpsemantics_value.IsEmpty() && sdpsemantics_value->IsString()) {
+            v8::String::Utf8Value sdpsemantics(sdpsemantics_value->ToString());
+            std::string sdpsemantics_str = *sdpsemantics;
+            if (sdpsemantics_str == "plan-b") {
+                _config.sdp_semantics = webrtc::SdpSemantics::kPlanB;
+            } else if (sdpsemantics_str == "unified-plan") {
+                _config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+            }
+        }
     }
 
     _stats = new rtc::RefCountedObject<StatsObserver>(this);
@@ -177,14 +195,9 @@ NAN_METHOD(RTCPeerConnection::New)
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
     Local<Object> configuration;
-    Local<Object> constraints;
 
     if (info.Length() >= 1 && info[0]->IsObject()) {
         configuration = Local<Object>::Cast(info[0]);
-
-        if (info.Length() >= 2 && info[1]->IsObject()) {
-            constraints = Local<Object>::Cast(info[1]);
-        }
     }
 
     // setup default configuration
@@ -199,10 +212,9 @@ NAN_METHOD(RTCPeerConnection::New)
         peer->Wrap(info.This());
         return info.GetReturnValue().Set(info.This());
     } else {
-        const int argc = 2;
+        const int argc = 1;
         Local<Value> argv[argc] = {
             configuration,
-            constraints
         };
 
         Local<Function> instance = Nan::New(constructor);
@@ -569,8 +581,24 @@ NAN_METHOD(RTCPeerConnection::AddStream)
         webrtc::PeerConnectionInterface* socket = self->GetSocket();
 
         if (socket) {
-            if (!socket->AddStream(mediaStream)) {
-                Nan::ThrowError("AddStream Failed");
+            auto config = socket->GetConfiguration();
+            if (config.sdp_semantics == webrtc::SdpSemantics::kUnifiedPlan)
+            {
+                auto audio = mediaStream->GetAudioTracks();
+                std::vector<std::string> stream_ids;
+                stream_ids.push_back(mediaStream->id());
+                for (size_t i = 0; i < audio.size(); i++) {
+                    socket->AddTrack(audio[i], stream_ids);
+                }
+
+                auto video = mediaStream->GetVideoTracks();
+                for (size_t i = 0; i < video.size(); i++) {
+                    socket->AddTrack(video[i], stream_ids);
+                }
+            } else {
+                if (!socket->AddStream(mediaStream)) {
+                    Nan::ThrowError("AddStream Failed");
+                }
             }
         } else {
             Nan::ThrowError("Internal Error");
@@ -754,7 +782,7 @@ NAN_METHOD(RTCPeerConnection::GetConfiguration)
                 iceTransportPolicy = "none";
                 break;
             case webrtc::PeerConnectionInterface::kRelay:
-                iceTransportPolicy = "none";
+                iceTransportPolicy = "relay";
                 break;
             case webrtc::PeerConnectionInterface::kNoHost:
                 iceTransportPolicy = "no-host";
@@ -780,7 +808,7 @@ NAN_METHOD(RTCPeerConnection::GetConfiguration)
                 sdpSemantics = "plan-b";
                 break;
             case webrtc::SdpSemantics::kUnifiedPlan:
-                sdpSemantics = "unified";
+                sdpSemantics = "unified-plan";
                 break;
         }
 
@@ -1003,6 +1031,14 @@ NAN_GETTER(RTCPeerConnection::GetOnAddStream)
     return info.GetReturnValue().Set(Nan::New<Function>(self->_onaddstream));
 }
 
+NAN_GETTER(RTCPeerConnection::GetOnTrack)
+{
+    RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
+
+    RTCPeerConnection* self = Unwrap<RTCPeerConnection>(info.Holder());
+    return info.GetReturnValue().Set(Nan::New<Function>(self->_ontrack));
+}
+
 NAN_GETTER(RTCPeerConnection::GetOnRemoveStream)
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
@@ -1091,6 +1127,19 @@ NAN_SETTER(RTCPeerConnection::SetOnAddStream)
         self->_onaddstream.Reset<Function>(Local<Function>::Cast(value));
     } else {
         self->_onaddstream.Reset();
+    }
+}
+
+NAN_SETTER(RTCPeerConnection::SetOnTrack)
+{
+    RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
+
+    RTCPeerConnection* self = Unwrap<RTCPeerConnection>(info.Holder());
+
+    if (!value.IsEmpty() && value->IsFunction()) {
+        self->_ontrack.Reset<Function>(Local<Function>::Cast(value));
+    } else {
+        self->_ontrack.Reset();
     }
 }
 
@@ -1287,6 +1336,31 @@ void RTCPeerConnection::On(Event* event)
         argc = 1;
 
         break;
+    case kPeerConnectionTrack: {
+        RTC_LOG(LS_INFO) << "kPeerConnectionTrack";
+        callback = Nan::New<Function>(_ontrack);
+
+        rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver = event->Unwrap<rtc::scoped_refptr<webrtc::RtpTransceiverInterface> >();
+
+        // set the new object
+        container = Nan::New<Object>();
+        argv[0] = container;
+        argc = 1;
+
+        Local<Array> streams = Nan::New<Array>();
+        const std::vector<rtc::scoped_refptr<webrtc::MediaStreamInterface>> &streams_array = transceiver->receiver()->streams();
+        for (size_t i = 0; i < streams_array.size(); i++) {
+            streams->Set(i, MediaStream::New(streams_array[i]));
+        }
+        container->Set(Nan::New("streams").ToLocalChecked(), streams);
+
+        rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track = transceiver->receiver()->track();
+        container->Set(Nan::New("track").ToLocalChecked(), MediaStreamTrack::New(track));
+        container->Set(Nan::New("receiver").ToLocalChecked(), RTCRtpReceiver::New(transceiver->receiver()));
+        container->Set(Nan::New("transceiver").ToLocalChecked(), RTCRtpTransceiver::New(transceiver));
+
+        break;
+    }
     case kPeerConnectionRemoveStream:
         callback = Nan::New<Function>(_onremovestream);
 

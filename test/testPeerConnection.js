@@ -4,6 +4,8 @@ const rtc = require('..');
 // rtc.setDebug(true);
 
 describe('RTCPeerConnection', function() {
+    this.timeout(10000);
+
     var pc1;
     var pc2;
     before(function() {
@@ -133,4 +135,181 @@ describe('RTCPeerConnection', function() {
         })
     });
 
+
+    it('pc connection', function(done) {
+        var config = {
+            iceServers: [{
+                urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                ]
+            }]
+        }
+        var pc1 = new rtc.RTCPeerConnection(config);
+        var pc2 = new rtc.RTCPeerConnection(config);
+
+        afterEach(function() {
+            pc1.close();
+            pc2.close();
+        });
+
+        pc1.onicecandidate = function(event) {
+            // console.log('pc1 ice candidate', event);
+            if (event.candidate) {
+                pc2.addIceCandidate(event.candidate);
+            }
+        }
+
+        pc2.onicecandidate = function(event) {
+            // console.log('pc2 ice candidate', event);
+            if (event.candidate) {
+                pc1.addIceCandidate(event.candidate);
+            }
+        }
+
+
+        pc1.oniceconnectionstatechange = function(event) {
+            // console.log('iceConnectionState ', pc1.iceConnectionState, pc2.iceConnectionState);
+            if (pc1.iceConnectionState == 'completed' &&
+                pc2.iceConnectionState == 'connected') {
+                    pc1.close();
+                    pc2.close();
+                    done();
+                }
+        }
+
+        pc2.oniceconnectionstatechange = function(event) {
+            // console.log('iceConnectionState ', pc1.iceConnectionState, pc2.iceConnectionState);
+            if (pc1.iceConnectionState == 'completed' &&
+                pc2.iceConnectionState == 'connected') {
+                    pc1.close();
+                    pc2.close();
+                    done();
+                }
+        }
+
+        pc1.ontrack = function(track) {
+            track.enabled = false;
+        }
+
+        pc2.ontrack = function(track) {
+            track.enabled = false;
+        }
+
+        var localSDP1;
+        var localSDP2;
+        rtc.mediaDevices.getUserMedia({
+            video: false,
+            audio: true
+        }).then(function(stream) {
+            pc1.addStream(stream);
+            return pc1.createOffer({audio: true, video: true})
+        }).then(function(sdp) {
+            assert.ok(sdp.sdp);
+            localSDP1 = sdp;
+            return pc1.setLocalDescription(localSDP1);
+        }).then(function() {
+            assert.ok(true);
+            return pc2.setRemoteDescription(localSDP1);
+        }).then(function() {
+            assert.ok(true);
+            return pc2.createAnswer();
+        }).then(function(sdp) {
+            assert.ok(sdp.sdp);
+            localSDP2 = sdp;
+            return pc2.setLocalDescription(localSDP2);
+        }).then(function(sdp) {
+            assert.ok(true);
+            return pc1.setRemoteDescription(localSDP2);
+        }).then(function() {
+            assert.deepEqual(pc1.localDescription, localSDP1);
+            assert.deepEqual(pc1.remoteDescription, localSDP2);
+            assert.deepEqual(pc2.localDescription, localSDP2);
+            assert.deepEqual(pc2.remoteDescription, localSDP1);
+        })
+    });
+
+    it('pc remote stream', function(done) {
+        var config = {
+            iceServers: [{
+                urls: [
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                ]
+            }],
+            sdpSemantics: 'unified-plan'
+        }
+        var pc1 = new rtc.RTCPeerConnection(config);
+        var pc2 = new rtc.RTCPeerConnection(config);
+        var stream;
+
+        afterEach(function() {
+            pc1.close();
+            pc2.close();
+        });
+
+        pc1.onicecandidate = function(event) {
+            if (event.candidate) {
+                pc2.addIceCandidate(event.candidate);
+            }
+        }
+
+        pc2.onicecandidate = function(event) {
+            if (event.candidate) {
+                pc1.addIceCandidate(event.candidate);
+            }
+        }
+
+        pc1.onaddstream = function(event) {
+        }
+
+        pc2.onaddstream = function(event) {
+            stream = event.stream;
+        }
+
+        pc2.ontrack = function(event) {
+            console.log('ontrack', event);
+        }
+
+        var localSDP1;
+        var localSDP2;
+        rtc.mediaDevices.getUserMedia({
+            video: false,
+            audio: true
+        }).then(function(stream) {
+            pc1.addStream(stream);
+            return pc1.createOffer({audio: true, video: true})
+        }).then(function(sdp) {
+            assert.ok(sdp.sdp);
+            localSDP1 = sdp;
+            return pc1.setLocalDescription(localSDP1);
+        }).then(function() {
+            assert.ok(true);
+            return pc2.setRemoteDescription(localSDP1);
+        }).then(function() {
+            assert.ok(true);
+            return pc2.createAnswer();
+        }).then(function(sdp) {
+            assert.ok(sdp.sdp);
+            localSDP2 = sdp;
+            return pc2.setLocalDescription(localSDP2);
+        }).then(function(sdp) {
+            assert.ok(true);
+            return pc1.setRemoteDescription(localSDP2);
+        }).then(function() {
+            assert.deepEqual(pc1.localDescription, localSDP1);
+            assert.deepEqual(pc1.remoteDescription, localSDP2);
+            assert.deepEqual(pc2.localDescription, localSDP2);
+            assert.deepEqual(pc2.remoteDescription, localSDP1);
+            assert.ok(stream);
+            assert.ok(stream.getAudioTracks().length, 1);
+            done();
+        })
+    });
 });

@@ -45,7 +45,7 @@ private:
     void On(Event* event) final;
 
     // webrtc::ObserverInterface
-    virtual void OnChanged();
+    void OnChanged() final;
 
 protected:
     bool _active;

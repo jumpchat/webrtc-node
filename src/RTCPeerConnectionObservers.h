@@ -51,6 +51,7 @@ public:
 
     void OnAddStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) final;
     void OnRemoveStream(rtc::scoped_refptr<webrtc::MediaStreamInterface> stream) final;
+    void OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> receiver) final;
 };
 
 

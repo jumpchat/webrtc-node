@@ -167,6 +167,15 @@ void RTCPeerConnectionObserver::OnRemoveStream(rtc::scoped_refptr<webrtc::MediaS
     }
 }
 
+void RTCPeerConnectionObserver::OnTrack(rtc::scoped_refptr<webrtc::RtpTransceiverInterface> transceiver)
+{
+    RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
+
+    if (transceiver.get()) {
+        Emit(RTCPeerConnection::kPeerConnectionTrack, transceiver);
+    }
+}
+
 void RTCPeerConnectionObserver::OnRenegotiationNeeded()
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;

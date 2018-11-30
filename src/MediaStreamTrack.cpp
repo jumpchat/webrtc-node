@@ -46,7 +46,7 @@ NAN_MODULE_INIT(MediaStreamTrack::Init)
     constructor.Reset<Function>(tpl->GetFunction());
 }
 
-Local<Value> MediaStreamTrack::New(rtc::scoped_refptr<webrtc::AudioTrackInterface> audioTrack)
+Local<Value> MediaStreamTrack::New(rtc::scoped_refptr<webrtc::MediaStreamTrackInterface> track)
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
@@ -55,48 +55,27 @@ Local<Value> MediaStreamTrack::New(rtc::scoped_refptr<webrtc::AudioTrackInterfac
     Local<Value> argv[1];
     Local<Function> instance = Nan::New(MediaStreamTrack::constructor);
 
-    if (instance.IsEmpty() || !audioTrack.get()) {
+    if (instance.IsEmpty() || !track.get()) {
         return scope.Escape(Nan::Null());
     }
 
     Local<Object> ret = instance->NewInstance(Nan::GetCurrentContext(), 0, argv).ToLocalChecked();
     MediaStreamTrack* self = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(ret);
 
-    self->isAudioTrack = true;
-    self->_track = audioTrack;
-    self->_source = audioTrack->GetSource();
-    self->_track_state = self->_track->state();
-    self->_source_state = self->_source->state();
-    // self->_track->RegisterObserver(self->_observer.get());
-    // self->_source->RegisterObserver(self->_observer.get());
-    self->CheckState();
-
-    return scope.Escape(ret);
-}
-
-Local<Value> MediaStreamTrack::New(rtc::scoped_refptr<webrtc::VideoTrackInterface> videoTrack)
-{
-    RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
-
-    Nan::EscapableHandleScope scope;
-
-    Local<Value> argv[1];
-    Local<Function> instance = Nan::New(MediaStreamTrack::constructor);
-
-    if (instance.IsEmpty() || !videoTrack.get()) {
-        return scope.Escape(Nan::Null());
+    self->isVideoTrack = track->kind() == webrtc::MediaStreamTrackInterface::kVideoKind;
+    self->isAudioTrack = track->kind() == webrtc::MediaStreamTrackInterface::kAudioKind;
+    self->_track = track;
+    if (self->isAudioTrack) {
+        rtc::scoped_refptr<webrtc::AudioTrackInterface> audio(static_cast<webrtc::AudioTrackInterface*>(track.get()));
+        self->_source = audio->GetSource();
+    } else if (self->isVideoTrack) {
+        rtc::scoped_refptr<webrtc::VideoTrackInterface> video(static_cast<webrtc::VideoTrackInterface*>(track.get()));
+        self->_source = video->GetSource();
     }
-
-    Local<Object> ret = instance->NewInstance(Nan::GetCurrentContext(), 0, argv).ToLocalChecked();
-    MediaStreamTrack* self = Nan::ObjectWrap::Unwrap<MediaStreamTrack>(ret);
-
-    self->isVideoTrack = true;
-    self->_track = videoTrack;
-    self->_source = videoTrack->GetSource();
     self->_track_state = self->_track->state();
     self->_source_state = self->_source->state();
-    // self->_track->RegisterObserver(self->_observer.get());
-    // self->_source->RegisterObserver(self->_observer.get());
+    self->_track->RegisterObserver(self);
+    self->_source->RegisterObserver(self);
     self->CheckState();
 
     return scope.Escape(ret);
@@ -105,23 +84,19 @@ Local<Value> MediaStreamTrack::New(rtc::scoped_refptr<webrtc::VideoTrackInterfac
 MediaStreamTrack::MediaStreamTrack()
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
-
-    // _observer = new rtc::RefCountedObject<MediaStreamTrackObserver>(this);
 }
 
 MediaStreamTrack::~MediaStreamTrack()
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
-    // if (_track.get()) {
-    //     _track->UnregisterObserver(_observer.get());
-    // }
+    if (_track.get()) {
+        _track->UnregisterObserver(this);
+    }
 
-    // if (_source.get()) {
-    //     _source->UnregisterObserver(_observer.get());
-    // }
-
-    // _observer->RemoveListener(this);
+    if (_source.get()) {
+        _source->UnregisterObserver(this);
+    }
 }
 
 NAN_METHOD(MediaStreamTrack::New)
@@ -525,4 +500,8 @@ void MediaStreamTrack::On(Event* event)
     }
 
     MediaStreamTrack::CheckState();
+}
+
+void MediaStreamTrack::OnChanged() {
+    Emit(kMediaStreamTrackChanged);
 }

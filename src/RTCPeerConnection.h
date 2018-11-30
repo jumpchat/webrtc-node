@@ -25,6 +25,7 @@ public:
         kPeerConnectionIceGathering,
         kPeerConnectionDataChannel,
         kPeerConnectionAddStream,
+        kPeerConnectionTrack,
         kPeerConnectionRemoveStream,
         kPeerConnectionRenegotiation,
         kPeerConnectionStats
@@ -61,6 +62,7 @@ private:
     static NAN_GETTER(GetOnDataChannel);
     static NAN_GETTER(GetOnNegotiationNeeded);
     static NAN_GETTER(GetOnAddStream);
+    static NAN_GETTER(GetOnTrack);
     static NAN_GETTER(GetOnRemoveStream);
     static NAN_GETTER(GetLocalDescription);
     static NAN_GETTER(GetRemoteDescription);
@@ -72,6 +74,7 @@ private:
     static NAN_SETTER(SetOnDataChannel);
     static NAN_SETTER(SetOnNegotiationNeeded);
     static NAN_SETTER(SetOnAddStream);
+    static NAN_SETTER(SetOnTrack);
     static NAN_SETTER(SetOnRemoveStream);
 
     void On(Event* event) final;
@@ -87,6 +90,7 @@ protected:
     Nan::Persistent<v8::Function> _ondatachannel;
     Nan::Persistent<v8::Function> _onnegotiationneeded;
     Nan::Persistent<v8::Function> _onaddstream;
+    Nan::Persistent<v8::Function> _ontrack;
     Nan::Persistent<v8::Function> _onremovestream;
 
     Nan::Persistent<v8::Function> _offerCallback;
