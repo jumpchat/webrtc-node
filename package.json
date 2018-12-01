@@ -1,6 +1,6 @@
 {
   "name": "webrtc-node",
-  "version": "2.2.0",
+  "version": "1.0.0",
   "description": "WebRTC for NodeJS",
   "private": true,
   "gypfile": true,
@@ -25,7 +25,7 @@
   "binary": {
     "module_name": "webrtc",
     "module_path": "./lib/binding/{configuration}/{node_abi}-{platform}-{arch}/",
-    "host": "https://bitbucket.org",
-    "remote_path": "/jumpchat/webrtc-node/downloads/"
+    "host": "https://github.org",
+    "remote_path": "/jumpchat/webrtc-node/releases/"
   }
 }
