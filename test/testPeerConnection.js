@@ -274,7 +274,7 @@ describe('RTCPeerConnection', function() {
         }
 
         pc2.ontrack = function(event) {
-            console.log('ontrack', event);
+            // console.log('ontrack', event);
         }
 
         var localSDP1;
