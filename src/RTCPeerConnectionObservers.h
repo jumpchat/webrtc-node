@@ -9,6 +9,7 @@ public:
     OfferObserver(EventEmitter* listener = 0);
 
     void OnSuccess(webrtc::SessionDescriptionInterface* sdp) final;
+    void OnFailure(webrtc::RTCError error) final;
     void OnFailure(const std::string& error) final;
 };
 
@@ -17,6 +18,7 @@ public:
     AnswerObserver(EventEmitter* listener = 0);
 
     void OnSuccess(webrtc::SessionDescriptionInterface* sdp) final;
+    void OnFailure(webrtc::RTCError error) final;
     void OnFailure(const std::string& error) final;
 };
 
@@ -25,6 +27,7 @@ public:
     LocalDescriptionObserver(EventEmitter* listener = 0);
 
     void OnSuccess() final;
+    void OnFailure(webrtc::RTCError error) final;
     void OnFailure(const std::string& error) final;
 };
 
@@ -33,6 +36,7 @@ public:
     RemoteDescriptionObserver(EventEmitter* listener = 0);
 
     void OnSuccess() final;
+    void OnFailure(webrtc::RTCError error) final;
     void OnFailure(const std::string& error) final;
 };
 

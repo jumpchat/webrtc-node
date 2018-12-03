@@ -27,6 +27,13 @@ void OfferObserver::OnSuccess(webrtc::SessionDescriptionInterface* desc)
     }
 }
 
+void OfferObserver::OnFailure(webrtc::RTCError error)
+{
+    RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
+
+    Emit(RTCPeerConnection::kPeerConnectionCreateOfferError, error.message());
+}
+
 void OfferObserver::OnFailure(const std::string& error)
 {
     RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
@@ -55,6 +62,13 @@ void AnswerObserver::OnSuccess(webrtc::SessionDescriptionInterface* desc)
     }
 }
 
+void AnswerObserver::OnFailure(webrtc::RTCError error)
+{
+    RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
+
+    Emit(RTCPeerConnection::kPeerConnectionCreateAnswerError, error.message());
+}
+
 void AnswerObserver::OnFailure(const std::string& error)
 {
     RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
@@ -74,6 +88,13 @@ void LocalDescriptionObserver::OnSuccess()
     Emit(RTCPeerConnection::kPeerConnectionSetLocalDescription);
 }
 
+void LocalDescriptionObserver::OnFailure(webrtc::RTCError error)
+{
+    RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
+
+    Emit(RTCPeerConnection::kPeerConnectionSetLocalDescriptionError, error.message());
+}
+
 void LocalDescriptionObserver::OnFailure(const std::string& error)
 {
     RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
@@ -91,6 +112,13 @@ void RemoteDescriptionObserver::OnSuccess()
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
     Emit(RTCPeerConnection::kPeerConnectionSetRemoteDescription);
+}
+
+void RemoteDescriptionObserver::OnFailure(webrtc::RTCError error)
+{
+    RTC_LOG(LS_ERROR) << __PRETTY_FUNCTION__;
+
+    Emit(RTCPeerConnection::kPeerConnectionSetRemoteDescriptionError, error.message());
 }
 
 void RemoteDescriptionObserver::OnFailure(const std::string& error)
