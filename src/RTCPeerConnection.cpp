@@ -1156,7 +1156,7 @@ NAN_SETTER(RTCPeerConnection::SetOnRemoveStream)
     }
 }
 
-void RTCPeerConnection::On(Event* event)
+void RTCPeerConnection::On(WebRTC::Event* event)
 {
     RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__;
 
