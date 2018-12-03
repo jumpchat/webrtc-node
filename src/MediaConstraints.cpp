@@ -132,7 +132,7 @@ rtc::scoped_refptr<MediaConstraints> MediaConstraints::New(const Local<Object>& 
                         self->SetOptional(webrtc::MediaConstraintsInterface::kNoiseReduction, noiseReduction);
 
                         if (!sourceId.IsEmpty() && sourceId->IsString()) {
-                            String::Utf8Value sourceId_str(sourceId->ToString());
+                            String::Utf8Value sourceId_str(Isolate::GetCurrent(), sourceId->ToString());
                             self->_audioId = *sourceId_str;
                         }
                     }
@@ -184,7 +184,7 @@ rtc::scoped_refptr<MediaConstraints> MediaConstraints::New(const Local<Object>& 
                         self->SetOptional(webrtc::MediaConstraintsInterface::kMinFrameRate, minFrameRate);
 
                         if (!sourceId.IsEmpty() && sourceId->IsString()) {
-                            String::Utf8Value sourceId_str(sourceId->ToString());
+                            String::Utf8Value sourceId_str(Isolate::GetCurrent(), sourceId->ToString());
                             self->_videoId = *sourceId_str;
                             RTC_LOG(LS_INFO) << "**** VIDEOID " << self->_videoId;
                         }

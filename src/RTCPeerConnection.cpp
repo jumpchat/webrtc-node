@@ -80,40 +80,40 @@ RTCPeerConnection::RTCPeerConnection(const Local<Object>& configuration) :
                     webrtc::PeerConnectionInterface::IceServer entry;
 
                     if (!url_value.IsEmpty() && url_value->IsString()) {
-                        v8::String::Utf8Value url(url_value->ToString());
+                        v8::String::Utf8Value url(Isolate::GetCurrent(), url_value->ToString());
 
                         entry.urls.push_back(*url);
 
                         if (!username_value.IsEmpty() && username_value->IsString()) {
-                            String::Utf8Value username(username_value->ToString());
+                            String::Utf8Value username(Isolate::GetCurrent(), username_value->ToString());
                             entry.username = *username;
                         }
 
                         if (!credential_value.IsEmpty() && credential_value->IsString()) {
-                            String::Utf8Value credential(credential_value->ToString());
+                            String::Utf8Value credential(Isolate::GetCurrent(), credential_value->ToString());
                             entry.password = *credential;
                         }
                     }
 
                     if (!urls_value.IsEmpty()) {
                         if (urls_value->IsString()) {
-                            v8::String::Utf8Value url(urls_value->ToString());
+                            String::Utf8Value url(Isolate::GetCurrent(), urls_value->ToString());
                             entry.urls.push_back(*url);
                         }  if (urls_value->IsArray()) {
                             Local<Array> urls = Local<Array>::Cast(urls_value);
                             for (uint32_t i = 0; i < urls->Length(); i++) {
-                                v8::String::Utf8Value url(urls->Get(i));
+                                String::Utf8Value url(Isolate::GetCurrent(), urls->Get(i));
                                 entry.urls.push_back(*url);
                             }
                         }
 
                         if (!username_value.IsEmpty() && username_value->IsString()) {
-                            String::Utf8Value username(username_value->ToString());
+                            String::Utf8Value username(Isolate::GetCurrent(), username_value->ToString());
                             entry.username = *username;
                         }
 
                         if (!credential_value.IsEmpty() && credential_value->IsString()) {
-                            String::Utf8Value credential(credential_value->ToString());
+                            String::Utf8Value credential(Isolate::GetCurrent(), credential_value->ToString());
                             entry.password = *credential;
                         }
                     }
@@ -130,7 +130,7 @@ RTCPeerConnection::RTCPeerConnection(const Local<Object>& configuration) :
 
         Local<Value> sdpsemantics_value = configuration->Get(Nan::New("sdpSemantics").ToLocalChecked());
         if (!sdpsemantics_value.IsEmpty() && sdpsemantics_value->IsString()) {
-            v8::String::Utf8Value sdpsemantics(sdpsemantics_value->ToString());
+            v8::String::Utf8Value sdpsemantics(Isolate::GetCurrent(), sdpsemantics_value->ToString());
             std::string sdpsemantics_str = *sdpsemantics;
             if (sdpsemantics_str == "plan-b") {
                 _config.sdp_semantics = webrtc::SdpSemantics::kPlanB;
@@ -331,8 +331,8 @@ NAN_METHOD(RTCPeerConnection::SetLocalDescription)
                     self->_localErrorCallback.Reset();
                 }
 
-                String::Utf8Value type(type_value->ToString());
-                String::Utf8Value sdp(sdp_value->ToString());
+                String::Utf8Value type(Isolate::GetCurrent(), type_value->ToString());
+                String::Utf8Value sdp(Isolate::GetCurrent(), sdp_value->ToString());
 
                 webrtc::SessionDescriptionInterface* desc(webrtc::CreateSessionDescription(*type, *sdp, 0));
 
@@ -394,8 +394,8 @@ NAN_METHOD(RTCPeerConnection::SetRemoteDescription)
                     self->_remoteErrorCallback.Reset();
                 }
 
-                String::Utf8Value type(type_value->ToString());
-                String::Utf8Value sdp(sdp_value->ToString());
+                String::Utf8Value type(Isolate::GetCurrent(), type_value->ToString());
+                String::Utf8Value sdp(Isolate::GetCurrent(), sdp_value->ToString());
 
                 webrtc::SessionDescriptionInterface* desc(webrtc::CreateSessionDescription(*type, *sdp, 0));
 
@@ -450,8 +450,8 @@ NAN_METHOD(RTCPeerConnection::AddIceCandidate)
             if (!sdpMLineIndex_value.IsEmpty() && sdpMLineIndex_value->IsInt32()) {
                 if (!sdp_value.IsEmpty() && sdp_value->IsString()) {
                     Local<Int32> sdpMLineIndex(sdpMLineIndex_value->ToInt32(Nan::GetCurrentContext()).ToLocalChecked());
-                    String::Utf8Value sdpMid(sdpMid_value->ToString());
-                    String::Utf8Value sdp(sdp_value->ToString());
+                    String::Utf8Value sdpMid(Isolate::GetCurrent(), sdpMid_value->ToString());
+                    String::Utf8Value sdp(Isolate::GetCurrent(), sdp_value->ToString());
 
                     std::unique_ptr<webrtc::IceCandidateInterface> candidate(webrtc::CreateIceCandidate(*sdpMid, sdpMLineIndex->Value(), *sdp, 0));
 
@@ -507,7 +507,7 @@ NAN_METHOD(RTCPeerConnection::CreateDataChannel)
     webrtc::DataChannelInit config;
 
     if (!info[0].IsEmpty() && info[0]->IsString()) {
-        String::Utf8Value label_utf8(info[0]->ToString());
+        String::Utf8Value label_utf8(Isolate::GetCurrent(), info[0]->ToString());
         label = *label_utf8;
     }
 
@@ -548,7 +548,7 @@ NAN_METHOD(RTCPeerConnection::CreateDataChannel)
         }
 
         if (!protocol_value.IsEmpty() && protocol_value->IsString()) {
-            String::Utf8Value protocol(protocol_value->ToString());
+            String::Utf8Value protocol(Isolate::GetCurrent(), protocol_value->ToString());
             config.protocol = *protocol;
         }
 
@@ -695,7 +695,7 @@ NAN_METHOD(RTCPeerConnection::GetStreamById)
 
     if (socket) {
         if (info.Length() >= 1 && info[0]->IsString()) {
-            v8::String::Utf8Value idValue(info[0]->ToString());
+            v8::String::Utf8Value idValue(Isolate::GetCurrent(), info[0]->ToString());
             std::string id(*idValue);
 
             rtc::scoped_refptr<webrtc::StreamCollectionInterface> local = socket->local_streams();

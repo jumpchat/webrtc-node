@@ -156,7 +156,7 @@ NAN_SETTER(RTCRtpTransceiver::SetDirection)
     RTCRtpTransceiver* self = Nan::ObjectWrap::Unwrap<RTCRtpTransceiver>(info.Holder());
 
     if (!value.IsEmpty() && value->IsString()) {
-        v8::String::Utf8Value direction(value->ToString());
+        v8::String::Utf8Value direction(Isolate::GetCurrent(), value->ToString());
         self->_transceiver->SetDirection(RTCRtpTransceiver::TransceiverDirectionFromString(*direction));
     } else {
         RTC_LOG(LS_INFO) << "Setting unknown direction";

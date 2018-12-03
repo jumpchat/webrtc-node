@@ -27,7 +27,7 @@ void SetDebug(const Nan::FunctionCallbackInfo<Value>& info)
             rtc::LogMessage::LogToDebug(rtc::LS_NONE);
             RTC_LOG(LS_INFO) << __PRETTY_FUNCTION__ << " " << false;
         } else if (info[0]->IsString()) {
-            v8::String::Utf8Value idValue(info[0]->ToString());
+            v8::String::Utf8Value idValue(Isolate::GetCurrent(), info[0]->ToString());
             std::string id(*idValue);
             if (id == "verbose") {
                 rtc::LogMessage::LogToDebug(rtc::LS_VERBOSE);

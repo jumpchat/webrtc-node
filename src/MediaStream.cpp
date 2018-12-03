@@ -240,7 +240,7 @@ NAN_METHOD(MediaStream::GetTrackById)
 
     if (stream.get()) {
         if (info.Length() >= 1 && info[0]->IsString()) {
-            v8::String::Utf8Value idValue(info[0]->ToString());
+            v8::String::Utf8Value idValue(Isolate::GetCurrent(), info[0]->ToString());
             std::string id(*idValue);
 
             rtc::scoped_refptr<webrtc::AudioTrackInterface> audio = stream->FindAudioTrack(id);

@@ -82,7 +82,7 @@ NAN_METHOD(RTCStatsReport::Stat)
     webrtc::StatsReport::Values values = stats->_report->values();
 
     if (info.Length() >= 1 && info[0]->IsString()) {
-        String::Utf8Value entry_value(info[0]->ToString());
+        String::Utf8Value entry_value(Isolate::GetCurrent(), info[0]->ToString());
         std::string entry(*entry_value);
 
         for (webrtc::StatsReport::Values::iterator it = values.begin(); it != values.end(); it++) {
