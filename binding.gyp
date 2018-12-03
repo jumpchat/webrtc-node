@@ -67,11 +67,13 @@
                         "configurations": {
                             "Debug": {
                                 "ldflags": [
+                                    '-Wl,--start-group',
                                     '<!(node scripts/constants.js WEBRTC_LIB_DEBUG)'
                                 ]
                             },
                             "Release": {
                                 "ldflags": [
+                                    '-Wl,--start-group',
                                     '<!(node scripts/constants.js WEBRTC_LIB_RELEASE)'
                                 ]
                             }
