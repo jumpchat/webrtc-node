@@ -173,8 +173,9 @@ describe('RTCPeerConnection', function() {
 
         pc1.oniceconnectionstatechange = function(event) {
             // console.log('iceConnectionState ', pc1.iceConnectionState, pc2.iceConnectionState);
-            if (pc1.iceConnectionState == 'completed' &&
-                pc2.iceConnectionState == 'connected') {
+            var goodState = ['connected', 'completed'];
+            if (goodState.indexOf(pc1.iceConnectionState) != -1 &&
+                goodState.indexOf(pc2.iceConnectionState) != -1) {
                     pc1.close();
                     pc2.close();
                     done();
@@ -183,8 +184,9 @@ describe('RTCPeerConnection', function() {
 
         pc2.oniceconnectionstatechange = function(event) {
             // console.log('iceConnectionState ', pc1.iceConnectionState, pc2.iceConnectionState);
-            if (pc1.iceConnectionState == 'completed' &&
-                pc2.iceConnectionState == 'connected') {
+            var goodState = ['connected', 'completed'];
+            if (goodState.indexOf(pc1.iceConnectionState) != -1 &&
+                goodState.indexOf(pc2.iceConnectionState) != -1) {
                     pc1.close();
                     pc2.close();
                     done();
