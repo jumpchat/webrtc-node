@@ -4,6 +4,8 @@ const rtc = require('..');
 // rtc.setDebug(true);
 
 describe('MediaVideoRenderer', function() {
+    this.timeout(5000);
+
     var stream;
     before(function() {
         rtc.mediaDevices.getUserMedia({
