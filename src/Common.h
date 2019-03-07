@@ -13,7 +13,7 @@
 #include "rtc_base/atomicops.h"
 #include "rtc_base/buffer.h"
 #include "rtc_base/helpers.h"
-#include "rtc_base/json.h"
+#include "json/json.h"
 #include "rtc_base/logging.h"
 #include "rtc_base/refcount.h"
 #include "rtc_base/scoped_ref_ptr.h"
@@ -26,6 +26,7 @@
 
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
+#include "api/video/builtin_video_bitrate_allocator_factory.h"
 #include "api/datachannelinterface.h"
 #include "api/jsep.h"
 #include "api/jsepsessiondescription.h"
@@ -48,6 +49,10 @@
 #include "modules/desktop_capture/desktop_capture_options.h"
 #include "modules/desktop_capture/desktop_and_cursor_composer.h"
 #include "modules/desktop_capture/mouse_cursor_monitor.h"
+
+#include "media/engine/webrtcmediaengine.h"
+#include "media/engine/internalencoderfactory.h"
+#include "media/engine/internaldecoderfactory.h"
 
 #include <node_object_wrap.h>
 #include <queue>

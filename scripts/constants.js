@@ -1,8 +1,8 @@
 var path = require('path')
 
 var HOME = process.env['HOME'] || path.resolve(__dirname, '..');
-var WEBRTC_VERSION = '2.2.0'
-var WEBRTC_REVISION = '4ab51cb6d7d4530b344e63ed8274d1454b7a5f39';
+var WEBRTC_VERSION = '2.2.5'
+var WEBRTC_REVISION = '80865776cf8a1a811166ee005951b7f5b01deacd';
 var WEBRTC_ROOT_DIR = path.resolve(HOME, '.webrtc');
 var DEPOT_TOOLS_REPO = 'https://chromium.googlesource.com/chromium/tools/depot_tools.git';
 var DEPOT_TOOLS_DIR = path.resolve(WEBRTC_ROOT_DIR, 'depot_tools');
